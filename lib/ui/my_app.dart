@@ -21,26 +21,16 @@ class _StateMyApp extends State<MyApp> {
       routes: [
         GoRoute(
           path: '/splash',
-          builder: (context, state) => SplashPage(onFinish: (){
-            context.go('/login');
-          },),
+          builder: (context, state) => SplashPage(
+            onFinish: () {
+              context.go('/login');
+            },
+          ),
         ),
-        GoRoute(
-          path: '/login',
-          builder: (context, state) => LoginPage(),
-        ),
-        GoRoute(
-          path: '/register',
-          builder: (context, state) => RegisterPage(),
-        ),
-        GoRoute(
-          path: '/story',
-          builder: (context, state) => StoryPage(),
-        ),
-        GoRoute(
-          path: '/profile',
-          builder: (context, state) => ProfilePage(),
-        ),
+        GoRoute(path: '/login', builder: (context, state) => LoginPage()),
+        GoRoute(path: '/register', builder: (context, state) => RegisterPage()),
+        GoRoute(path: '/story', builder: (context, state) => StoryPage()),
+        GoRoute(path: '/profile', builder: (context, state) => ProfilePage()),
         GoRoute(
           path: '/detail',
           builder: (context, state) => DetailStoryPage(),
@@ -51,13 +41,12 @@ class _StateMyApp extends State<MyApp> {
         return null;
       },
     );
-    return MaterialApp.router(title: 'Narrato', routerConfig: router);
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Narrato',
+      routerConfig: router,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: LoginPage(),
     );
   }
 }
