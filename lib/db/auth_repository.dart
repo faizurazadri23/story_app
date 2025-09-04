@@ -1,21 +1,23 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
-import '../model/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:story_app/data/api/api_services.dart';
+import 'package:story_app/data/model/response_login.dart';
+import 'package:story_app/data/model/response_register.dart';
+
+import '../data/model/user.dart';
 
 class AuthRepository {
   final String stateKey = "state";
   final String userKey = "user";
+  final ApiServices apiServices;
+
+  AuthRepository(this.apiServices);
 
   Future<bool> isLoggedIn() async {
     final preferences = await SharedPreferences.getInstance();
     await Future.delayed(Duration(seconds: 2));
-    return preferences.getBool(stateKey) ?? false;
-  }
-
-  Future<bool> login() async {
-    final preferences = await SharedPreferences.getInstance();
-    await Future.delayed(Duration(seconds: 2));
-    return preferences.setBool(stateKey, true);
+    return preferences.getString(userKey) !=null;
   }
 
   Future<bool> logout() async {
@@ -24,10 +26,10 @@ class AuthRepository {
     return preferences.setBool(stateKey, false);
   }
 
-  Future<bool> saveUser(User user) async {
+  Future<bool> saveLogin(LoginResult loginResult) async {
     final preferences = await SharedPreferences.getInstance();
     await Future.delayed(Duration(seconds: 2));
-    return preferences.setString(userKey, user.toJson());
+    return preferences.setString(userKey, jsonEncode(loginResult.toJson()));
   }
 
   Future<bool> deleteUser() async {
@@ -47,5 +49,18 @@ class AuthRepository {
       user = null;
     }
     return user;
+  }
+
+  Future<ResponseRegister> register(
+    String name,
+    String email,
+    String password,
+  ) async {
+    return apiServices.register(name, email, password);
+  }
+
+  Future<ResponseLogin> login(String email, String password
+      )async{
+    return apiServices.login(email, password);
   }
 }

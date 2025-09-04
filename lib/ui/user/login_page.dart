@@ -1,46 +1,168 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:story_app/provider/PasswordVisibilityProvider.dart';
+import 'package:story_app/provider/auth_provider.dart';
+
+import '../../data/model/user.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final Function() onLogin;
+  final Function() onRegister;
+
+  const LoginPage({super.key, required this.onLogin, required this.onRegister});
 
   @override
   State<LoginPage> createState() => _StateLogin();
 }
 
 class _StateLogin extends State<LoginPage> {
-
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
   }
 
   @override
-  void dispose(){
-    _usernameController.dispose();
+  void dispose() {
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final passwordProvider = context.watch<PasswordVisibilityProvider>();
     return Scaffold(
       appBar: AppBar(),
-      body: Padding(
-        padding: EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [Text('MyStory'),
-          Container(
-            width: MediaQuery.sizeOf(context).width,
-            height: 3,
-            color: Color(0x7E8C8C98),
-          ),
+      body: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/logo_app.png',
+                  width: 125,
+                  height: 125,
+                ),
+                SizedBox(height: 20),
+                Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _emailController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Email',
+                          hintText: 'Enter your email',
+                        ),
+                      ),
+                      SizedBox(height: 25),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: !passwordProvider.isPasswordVisible,
+                        textInputAction: TextInputAction.done,
+                        keyboardType: TextInputType.visiblePassword,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your password';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Password',
+                          hintText: 'Enter your password',
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              context
+                                  .read<PasswordVisibilityProvider>()
+                                  .toggle();
+                            },
+                            icon: Icon(
+                              passwordProvider.isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
 
-            TextFormField()
-          ],
+                      context.watch<AuthProvider>().isLoadingLogin
+                          ? const Center(child: CircularProgressIndicator())
+                          : ElevatedButton(
+                              onPressed: () async {
+                                if (_formKey.currentState!.validate()) {
+                                  final response = await context
+                                      .read<AuthProvider>()
+                                      .login(
+                                        _emailController.text,
+                                        _passwordController.text,
+                                      );
+
+                                  if (!context.mounted) return;
+                                  final msg =
+                                      context
+                                          .read<AuthProvider>()
+                                          .loginMessage ??
+                                      "";
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).showSnackBar(SnackBar(content: Text(msg)));
+
+                                  if (response) {
+                                    context.go("/story");
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: Size.fromHeight(50),
+                                backgroundColor: Colors.blue,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Don\'t have an account?'),
+                          TextButton(
+                            onPressed: widget.onRegister,
+                            child: Text('Register'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

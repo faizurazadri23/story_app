@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
+import 'package:provider/provider.dart';
+
+import '../provider/auth_provider.dart';
 
 class SplashPage extends StatefulWidget {
   final VoidCallback onFinish;
@@ -13,8 +17,15 @@ class _StateSplash extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 3), () {
-      widget.onFinish();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = context.read<AuthProvider>();
+      authProvider.checkLogin();
+
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          widget.onFinish();
+        }
+      });
     });
   }
 
