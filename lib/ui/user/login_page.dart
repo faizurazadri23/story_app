@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:story_app/provider/PasswordVisibilityProvider.dart';
 import 'package:story_app/provider/auth_provider.dart';
 
-import '../../data/model/user.dart';
-
 class LoginPage extends StatefulWidget {
   final Function() onLogin;
   final Function() onRegister;

@@ -1,9 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:story_app/db/auth_repository.dart';
 
-
-import '../data/model/user.dart';
-
 class AuthProvider extends ChangeNotifier {
   final AuthRepository authRepository;
   bool isLoadingLogin = false;
