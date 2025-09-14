@@ -1,17 +1,19 @@
 class ResponseLogin {
   final bool error;
   final String message;
-  final LoginResult? loginResult;
+  final LoginResult loginResult;
 
-  ResponseLogin({required this.error, required this.message, this.loginResult});
+  ResponseLogin({
+    required this.error,
+    required this.message,
+    required this.loginResult,
+  });
 
   factory ResponseLogin.fromJson(Map<String, dynamic> json) {
     return ResponseLogin(
       error: json['error'],
       message: json['message'],
-      loginResult: json['loginResult'] != null
-          ? LoginResult.fromJson(json['loginResult'])
-          : null,
+      loginResult: LoginResult.fromJson(json['loginResult']),
     );
   }
 }
@@ -32,10 +34,6 @@ class LoginResult {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'userId': userId,
-      'name': name,
-      'token': token,
-    };
+    return {'userId': userId, 'name': name, 'token': token};
   }
 }

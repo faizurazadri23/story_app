@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:story_app/provider/PasswordVisibilityProvider.dart';
 import 'package:story_app/provider/auth_provider.dart';
+import 'package:story_app/static/login_result_state.dart';
+
+import '../../provider/password_visibility_provider.dart';
 
 class LoginPage extends StatefulWidget {
   final Function() onLogin;
@@ -102,48 +104,58 @@ class _StateLogin extends State<LoginPage> {
                       ),
                       SizedBox(height: 20),
 
-                      context.watch<AuthProvider>().isLoadingLogin
-                          ? const Center(child: CircularProgressIndicator())
-                          : ElevatedButton(
-                              onPressed: () async {
-                                if (_formKey.currentState!.validate()) {
-                                  final response = await context
-                                      .read<AuthProvider>()
-                                      .login(
-                                        _emailController.text,
-                                        _passwordController.text,
-                                      );
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            final provider  = context.read<AuthProvider>();
 
-                                  if (!context.mounted) return;
-                                  final msg =
-                                      context
-                                          .read<AuthProvider>()
-                                          .loginMessage ??
-                                      "";
+                            await provider
+                                .login(
+                              _emailController.text,
+                              _passwordController.text,
+                            );
+
+                            final state = provider.resultState;
+
+                            if(state is LoginLoadingState){
+                              if(context.mounted){
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) =>
+                                  const Center(child: CircularProgressIndicator()),
+                                );
+                              }
+                            }else{
+                              if (state is LoginLoadedState) {
+                                if(context.mounted){
+                                  context.go("/story");
+                                }
+                              } else if (state is LoginErrorState) {
+                                if (context.mounted) {
                                   ScaffoldMessenger.of(
                                     context,
-                                  ).showSnackBar(SnackBar(content: Text(msg)));
-
-                                  if (response) {
-                                    context.go("/story");
-                                  }
+                                  ).showSnackBar(SnackBar(content: Text(state.error)));
                                 }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: Size.fromHeight(50),
-                                backgroundColor: Colors.blue,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              child: Text(
-                                'Login',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
+                              }
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: Size.fromHeight(50),
+                          backgroundColor: Colors.blue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                       SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,

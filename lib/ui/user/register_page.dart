@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:story_app/provider/auth_provider.dart';
 
-import '../../provider/PasswordVisibilityProvider.dart';
+import '../../provider/password_visibility_provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

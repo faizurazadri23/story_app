@@ -1,8 +1,12 @@
 import 'package:flutter/cupertino.dart';
+import 'package:story_app/data/api/api_services.dart';
+import 'package:story_app/data/model/response_login.dart';
 import 'package:story_app/db/auth_repository.dart';
+import 'package:story_app/static/login_result_state.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository authRepository;
+  final ApiServices _apiServices;
   bool isLoadingLogin = false;
   bool isLoadingRegister = false;
   bool isLoggedIn = false;
@@ -10,11 +14,17 @@ class AuthProvider extends ChangeNotifier {
   bool isSplashDone = false;
   String? _registerMessage;
   String? _loginMessage;
+  LoginResult? _loginResult;
 
   String? get registerMessage => _registerMessage;
   String? get loginMessage => _loginMessage;
+  LoginResult? get loginResult => _loginResult;
 
-  AuthProvider(this.authRepository);
+  LoginResultState _resultState = LoginNoneState();
+
+  LoginResultState get resultState => _resultState;
+
+  AuthProvider(this.authRepository,this._apiServices);
 
   Future<void> finishSplash()async{
     isSplashDone = true;
@@ -30,17 +40,12 @@ class AuthProvider extends ChangeNotifier {
     isLoadingLogout = true;
     notifyListeners();
 
-    final logout = await authRepository.logout();
-    if(logout){
-      await authRepository.deleteUser();
-    }
+    await authRepository.logout();
 
-    isLoggedIn = await authRepository.isLoggedIn();
-
-
+    isLoggedIn = false;
     isLoadingLogout = false;
     notifyListeners();
-    return !isLoggedIn;
+    return isLoggedIn;
   }
 
   Future<bool> register(String name, String email, String password) async{
@@ -48,7 +53,7 @@ class AuthProvider extends ChangeNotifier {
     _registerMessage = null;
     notifyListeners();
 
-    var result = await authRepository.register(name, email, password);
+    var result = await _apiServices.register(name, email, password);
 
     isLoadingRegister = false;
     _registerMessage = result.message;
@@ -57,20 +62,29 @@ class AuthProvider extends ChangeNotifier {
     return !result.error;
   }
 
-  Future<bool> login(String email, String password) async {
-    isLoadingLogin = true;
-    _loginMessage = null;
-    notifyListeners();
-
-    final result = await authRepository.login(email, password);
-    isLoadingLogin = false;
-    _loginMessage = result.message;
-    if(!result.error){
-      await authRepository.saveLogin(result.loginResult!);
-      isLoggedIn = true;
+  Future<void> login(String email, String password) async {
+    try{
+      _resultState = LoginLoadingState();
+      notifyListeners();
+      final result = await _apiServices.login(email, password);
+      if (result.error) {
+        _resultState = LoginErrorState(result.message);
+        notifyListeners();
+      } else {
+        _resultState = LoginLoadedState(result.loginResult);
+        authRepository.saveLogin(result.loginResult);
+        notifyListeners();
+      }
+    }on Exception catch(e){
+      _resultState = LoginErrorState(e.toString());
+      notifyListeners();
     }
+  }
+
+  Future<LoginResult> getLoginResult() async{
+    _loginResult = await authRepository.getUser();
     notifyListeners();
-    return !result.error;
+    return _loginResult!;
   }
 
 }
