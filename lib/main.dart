@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -5,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:story_app/data/api/api_services.dart';
 import 'package:story_app/provider/SharedPreferencesProvider.dart';
 import 'package:story_app/provider/auth_provider.dart';
+import 'package:story_app/provider/camera_provider.dart';
 import 'package:story_app/provider/detail_story_provider.dart';
 import 'package:story_app/provider/form_story_provider.dart';
 import 'package:story_app/provider/password_visibility_provider.dart';
@@ -16,7 +18,6 @@ import 'package:story_app/utils/service/shared_preference_service.dart';
 
 import 'db/auth_repository.dart';
 import 'firebase_options.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:story_app/provider/auth_provider.dart';
+import 'package:story_app/provider/camera_provider.dart';
 import 'package:story_app/provider/theme_provider.dart';
 import 'package:story_app/ui/camera_page.dart';
 import 'package:story_app/ui/splash_page.dart';
@@ -71,7 +72,17 @@ class _StateMyApp extends State<MyApp> {
         GoRoute(
           path: '/camera',
           builder: (context, state) {
-            return CameraPage(cameras: state.extra as List<CameraDescription>);
+            return FutureBuilder<List<CameraDescription>>(future: availableCameras(), builder: (context, snapshot) {
+              if(!snapshot.hasData){
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              final cameras = snapshot.data!;
+              return ChangeNotifierProvider(create: (_) => CameraProvider(cameras),child: CameraPage(cameras: cameras),);
+            },);
           },
         ),
       ],

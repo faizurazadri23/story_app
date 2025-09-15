@@ -1,76 +1,30 @@
 import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:story_app/provider/camera_provider.dart';
 
 class CameraPage extends StatefulWidget {
-  final List<CameraDescription> cameras;
-
-  const CameraPage({super.key, required this.cameras});
+  const CameraPage({super.key});
 
   @override
   State<CameraPage> createState() => _StateCamera();
 }
 
-class _StateCamera extends State<CameraPage> with WidgetsBindingObserver {
-  bool _isCameraInitialized = false;
-  bool _isBackCameraSelected = true;
-  CameraController? controller;
-
-  void onNewCameraSelected(CameraDescription cameraDescription) async {
-    final previousCameraController = controller;
-    final cameraController = CameraController(
-      cameraDescription,
-      ResolutionPreset.medium,
-    );
-
-    await previousCameraController?.dispose();
-    try {
-      await cameraController.initialize();
-    } on CameraException catch (e) {
-      if (kDebugMode) {
-        print('Error initializing camera : $e');
-      }
-    }
-
-    if (mounted) {
-      setState(() {
-        controller = cameraController;
-        _isCameraInitialized = controller!.value.isInitialized;
-      });
-    }
-  }
-
+class _StateCamera extends State<CameraPage> {
   @override
   void initState() {
-    WidgetsBinding.instance.addObserver(this);
-    onNewCameraSelected(widget.cameras.first);
     super.initState();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    controller?.dispose();
     super.dispose();
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    final CameraController? cameraController = controller;
-
-    if (cameraController == null || !cameraController.value.isInitialized) {
-      return;
-    }
-
-    if (state == AppLifecycleState.inactive) {
-      cameraController.dispose();
-    } else if (state == AppLifecycleState.resumed) {
-      onNewCameraSelected(cameraController.description);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final cameraProvider = context.watch<CameraProvider>();
     return Theme(
       data: ThemeData.dark(),
       child: Scaffold(
@@ -78,7 +32,7 @@ class _StateCamera extends State<CameraPage> with WidgetsBindingObserver {
           title: const Text('Take Picture'),
           actions: [
             IconButton(
-              onPressed: () => _onCameraSwitch(),
+              onPressed: () => cameraProvider.switchCamera(),
               icon: Icon(Icons.cameraswitch),
             ),
           ],
@@ -87,41 +41,26 @@ class _StateCamera extends State<CameraPage> with WidgetsBindingObserver {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              _isCameraInitialized
-                  ? CameraPreview(controller!)
+              cameraProvider.isInitialized && cameraProvider.controller != null
+                  ? CameraPreview(cameraProvider.controller!)
                   : const Center(child: CircularProgressIndicator()),
               Align(
                 alignment: const Alignment(0.0, 0.95),
-                child: _actionWidget(),
+                child: FloatingActionButton(
+                  onPressed: () async {
+                    pop(value) => context.pop(value);
+                    final image = await cameraProvider.takePicture();
+                    pop(image);
+                  },
+                  heroTag: "take-picture",
+                  tooltip: "Ambil Gambar",
+                  child: const Icon(Icons.camera_alt),
+                ),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _actionWidget() {
-    return FloatingActionButton(
-      onPressed: () async{
-        final navigator = Navigator.of(context);
-        final image = await controller?.takePicture();
-        navigator.pop(image);
-      },
-      heroTag: "take-picture",
-      tooltip: "Ambil Gambar",
-      child: const Icon(Icons.camera_alt),
-    );
-  }
-
-  void _onCameraSwitch() {
-    if(widget.cameras.length==1) return;
-    setState(() {
-      _isCameraInitialized = false;
-    });
-    onNewCameraSelected(widget.cameras[_isBackCameraSelected ? 1 : 0]);
-    setState(() {
-      _isBackCameraSelected = !_isBackCameraSelected;
-    });
   }
 }

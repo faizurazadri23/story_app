@@ -30,7 +30,7 @@ class _StateStory extends State<StoryPage> {
     _loadData();
   }
 
-  Future<void> _loadData()async{
+  Future<void> _loadData() async {
     Future.microtask(() {
       if (mounted) {
         context.read<AuthProvider>().getLoginResult().then((value) {
@@ -110,13 +110,13 @@ class _StateStory extends State<StoryPage> {
                       actions: [
                         TextButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            context.pop();
                           },
                           child: Text('Cancel'),
                         ),
                         TextButton(
                           onPressed: () async {
-                            Navigator.pop(context);
+                            context.pop();
                             widget.onLogout();
                           },
                           child: Text('Logout'),
@@ -172,8 +172,8 @@ class _StateStory extends State<StoryPage> {
                           ),
                         ),
                       );
-                    }
-                  )
+                    },
+                  ),
                 ),
                 StoryListLoadedState(stories: var storyList) =>
                   ListView.builder(

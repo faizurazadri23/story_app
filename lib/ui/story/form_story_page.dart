@@ -144,7 +144,7 @@ class _StateFormStory extends State<FormStoryPage> {
                                         );
                                       }
                                       if (!context.mounted) return;
-                                      Navigator.pop(context);
+                                      context.pop();
                                     },
                                   ),
                                   ListTile(
@@ -153,7 +153,7 @@ class _StateFormStory extends State<FormStoryPage> {
                                     onTap: () async {
                                       await _onGalleryView();
                                       if (!context.mounted) return;
-                                      Navigator.pop(context);
+                                      context.pop();
                                     },
                                   ),
                                 ],
