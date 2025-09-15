@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:story_app/data/model/response_detail_story.dart';
 import 'package:story_app/data/model/response_login.dart';
@@ -15,47 +16,53 @@ class ApiServices {
     String email,
     String password,
   ) async {
-    final response = await http.post(
-      Uri.parse("$_baseUrl/register"),
-      body: {'name': name, 'email': email, 'password': password},
-    );
-    if (response.statusCode == 200) {
+    try {
+      final response = await http.post(
+        Uri.parse("$_baseUrl/register"),
+        body: {'name': name, 'email': email, 'password': password},
+      );
       return ResponseRegister.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to register user');
+    } on SocketException {
+      throw Exception('No internet connection');
+    } catch (e) {
+      throw Exception('Oops, something went wrong');
     }
   }
 
   Future<ResponseLogin> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse("$_baseUrl/login"),
-      body: {'email': email, 'password': password},
-    );
+    try {
+      final response = await http.post(
+        Uri.parse("$_baseUrl/login"),
+        body: {'email': email, 'password': password},
+      );
 
-    if (response.statusCode == 200) {
       return ResponseLogin.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to login user');
+    } on SocketException {
+      throw Exception('No internet connection');
+    } catch (e) {
+      throw Exception('Oops, something went wrong');
     }
   }
 
   Future<ResponseStory> loadAll(int page, int size, String token) async {
-    final uri = Uri.parse("$_baseUrl/stories").replace(
-      queryParameters: {
-        "page": page.toString(),
-        "size": size.toString(),
-        "location": "1",
-      },
-    );
-    final response = await http.get(
-      uri,
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    try {
+      final uri = Uri.parse("$_baseUrl/stories").replace(
+        queryParameters: {
+          "page": page.toString(),
+          "size": size.toString(),
+          "location": "1",
+        },
+      );
+      final response = await http.get(
+        uri,
+        headers: {'Authorization': 'Bearer $token'},
+      );
 
-    if (response.statusCode == 200) {
       return ResponseStory.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load story');
+    } on SocketException {
+      throw Exception('No internet connection');
+    } catch (e) {
+      throw Exception('Oops, something went wrong');
     }
   }
 
@@ -66,44 +73,48 @@ class ApiServices {
     String latitude,
     String longitude,
   ) async {
-    final uri = Uri.parse("$_baseUrl/stories");
+    try {
+      final uri = Uri.parse("$_baseUrl/stories");
 
-    var request = http.MultipartRequest("POST", uri);
+      var request = http.MultipartRequest("POST", uri);
 
-    request.headers['Authorization'] = 'Bearer $token';
-    request.fields['description'] = description;
-    request.fields['lat'] = latitude;
-    request.fields['lon'] = longitude;
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['description'] = description;
+      request.fields['lat'] = latitude;
+      request.fields['lon'] = longitude;
 
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'photo',
-        filePath,
-        filename: filePath.split('/').last,
-      ),
-    );
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'photo',
+          filePath,
+          filename: filePath.split('/').last,
+        ),
+      );
 
-    var streamResponse = await request.send();
-    var response = await http.Response.fromStream(streamResponse);
+      var streamResponse = await request.send();
+      var response = await http.Response.fromStream(streamResponse);
 
-    if (response.statusCode == 200) {
       return ResponseNewStory.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load create story');
+    } on SocketException {
+      throw Exception('No internet connection');
+    } catch (e) {
+      throw Exception('Oops, something went wrong');
     }
   }
 
   Future<ResponseDetailStory> loadDetail(String id, String token) async {
-    final uri = Uri.parse("$_baseUrl/stories/$id");
-    final response = await http.get(
-      uri,
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    try {
+      final uri = Uri.parse("$_baseUrl/stories/$id");
+      final response = await http.get(
+        uri,
+        headers: {'Authorization': 'Bearer $token'},
+      );
 
-    if (response.statusCode == 200) {
       return ResponseDetailStory.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load detail story');
+    } on SocketException {
+      throw Exception('No internet connection');
+    } catch (e) {
+      throw Exception('Oops, something went wrong');
     }
   }
 }

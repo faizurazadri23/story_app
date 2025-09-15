@@ -75,7 +75,7 @@ class FormStoryProvider extends ChangeNotifier {
         notifyListeners();
       }
     } on Exception catch (e) {
-      _resultState = StoryPostErrorState(e.toString());
+      _resultState = StoryPostErrorState(e.toString().replaceAll('Exception:', '').trim());
       notifyListeners();
     }
   }

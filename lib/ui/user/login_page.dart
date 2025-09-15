@@ -109,34 +109,34 @@ class _StateLogin extends State<LoginPage> {
                           if (_formKey.currentState!.validate()) {
                             final provider  = context.read<AuthProvider>();
 
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (_) =>
+                              const Center(child: CircularProgressIndicator()),
+                            );
+
                             await provider
                                 .login(
                               _emailController.text,
                               _passwordController.text,
                             );
 
+                            if(context.mounted){
+                              context.pop();
+                            }
+
                             final state = provider.resultState;
 
-                            if(state is LoginLoadingState){
+                            if (state is LoginLoadedState) {
                               if(context.mounted){
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (_) =>
-                                  const Center(child: CircularProgressIndicator()),
-                                );
+                                context.go("/story");
                               }
-                            }else{
-                              if (state is LoginLoadedState) {
-                                if(context.mounted){
-                                  context.go("/story");
-                                }
-                              } else if (state is LoginErrorState) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(
-                                    context,
-                                  ).showSnackBar(SnackBar(content: Text(state.error)));
-                                }
+                            } else if (state is LoginErrorState) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(SnackBar(content: Text(state.error)));
                               }
                             }
                           }

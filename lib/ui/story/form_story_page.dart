@@ -203,6 +203,12 @@ class _StateFormStory extends State<FormStoryPage> {
                     return;
                   }
                   var data = context.read<AuthProvider>().loginResult;
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) =>
+                        const Center(child: CircularProgressIndicator()),
+                  );
                   await provider.newStory(
                     filePath,
                     desc,
@@ -211,30 +217,24 @@ class _StateFormStory extends State<FormStoryPage> {
                     lon,
                   );
 
-                  if (!mounted) return;
+                  if (context.mounted) {
+                    context.pop();
+                  }
+
                   final state = provider.resultState;
 
-                  if (state is StoryPostLoadingState) {
+                  if (state is StoryPostLoadedState) {
                     if (context.mounted) {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (_) =>
-                            const Center(child: CircularProgressIndicator()),
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(state.responseNewStory.message)),
                       );
+                      context.go("/story");
                     }
-                  } else {
+                  } else if (state is StoryPostErrorState) {
                     if (context.mounted) {
-                      Navigator.pop(context);
-                    }
-                    if (state is StoryPostLoadedState) {
-                      Navigator.pop(context);
-                    } else if (state is StoryPostErrorState) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(state.error)));
-                      }
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(state.error)));
                     }
                   }
                 },

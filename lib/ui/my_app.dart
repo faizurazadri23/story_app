@@ -1,8 +1,10 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:story_app/provider/auth_provider.dart';
+import 'package:story_app/provider/theme_provider.dart';
 import 'package:story_app/ui/camera_page.dart';
 import 'package:story_app/ui/splash_page.dart';
 import 'package:story_app/ui/story/detail_story_page.dart';
@@ -11,6 +13,7 @@ import 'package:story_app/ui/story/story_page.dart';
 import 'package:story_app/ui/user/login_page.dart';
 import 'package:story_app/ui/user/profile_page.dart';
 import 'package:story_app/ui/user/register_page.dart';
+import 'package:story_app/utils/styles/theme/story_theme.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -43,26 +46,34 @@ class _StateMyApp extends State<MyApp> {
           ),
         ),
         GoRoute(path: '/register', builder: (context, state) => RegisterPage()),
-        GoRoute(path: '/story', builder: (context, state) => StoryPage(onLogout: () async {
-          final statusLogin = await context.read<AuthProvider>().logout();
-          if (!statusLogin && context.mounted) {
-            context.go('/login');
-          }
-        },)),
+        GoRoute(
+          path: '/story',
+          builder: (context, state) => StoryPage(
+            onLogout: () async {
+              final statusLogin = await context.read<AuthProvider>().logout();
+              if (!statusLogin && context.mounted) {
+                context.go('/login');
+              }
+            },
+          ),
+        ),
         GoRoute(
           path: '/story/form',
           builder: (context, state) => FormStoryPage(),
         ),
         GoRoute(
           path: '/story/detail',
-          builder: (context, state){
+          builder: (context, state) {
             return DetailStoryPage(id: state.extra as String);
           },
         ),
         GoRoute(path: '/profile', builder: (context, state) => ProfilePage()),
-        GoRoute(path: '/camera',builder: (context, state) {
-          return CameraPage(cameras: state.extra as List<CameraDescription>);
-        }),
+        GoRoute(
+          path: '/camera',
+          builder: (context, state) {
+            return CameraPage(cameras: state.extra as List<CameraDescription>);
+          },
+        ),
       ],
       initialLocation: '/splash',
     );
@@ -70,12 +81,22 @@ class _StateMyApp extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Narrato',
-      routerConfig: router,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+    return Consumer<ThemeProvider>(
+      builder: (context, value, child) {
+        return MaterialApp.router(
+          title: 'Narrato',
+          routerConfig: router,
+          darkTheme: _buildTheme(themeData: StoryTheme.darkTheme),
+          theme: _buildTheme(themeData: StoryTheme.lightTheme),
+          themeMode: value.selectedThemeMode,
+        );
+      },
+    );
+  }
+
+  ThemeData _buildTheme({required ThemeData themeData}) {
+    return themeData.copyWith(
+      textTheme: GoogleFonts.aBeeZeeTextTheme(themeData.textTheme),
     );
   }
 }

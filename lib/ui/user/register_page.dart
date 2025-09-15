@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:story_app/provider/auth_provider.dart';
+import 'package:story_app/static/register_result_state.dart';
 
 import '../../provider/password_visibility_provider.dart';
 
@@ -123,23 +124,37 @@ class _StateRegister extends State<RegisterPage> {
                           ? null
                           :  () async {
                         if (_formKey.currentState!.validate()) {
-                         final success = await context.read<AuthProvider>().register(
+                          final provider  = context.read<AuthProvider>();
+
+                          showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (_) =>
+                              const Center(child: CircularProgressIndicator()));
+
+                          await provider.register(
                             _fullNameController.text,
                             _emailController.text,
                             _passwordController.text,
                           );
 
-                          if (!context.mounted) return;
-                          final msg =
-                              context.read<AuthProvider>().registerMessage ??
-                              "";
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text(msg)));
-
-                          if(success){
-                            context.go("/login");
+                          if(context.mounted){
+                            context.pop();
                           }
+
+                          final state = provider.resultRegisterState;
+
+                          if (state is RegisterLoadedState) {
+                            if(context.mounted){
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.responseRegister.message)));
+                              context.go("/login");
+                            }
+                          }else if(state is RegisterErrorState){
+                            if(context.mounted){
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error)));
+                            }
+                          }
+
                         }
                       },
                       child: context.watch<AuthProvider>().isLoadingRegister

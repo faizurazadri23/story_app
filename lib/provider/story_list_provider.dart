@@ -24,7 +24,7 @@ class StoryListProvider extends ChangeNotifier {
         notifyListeners();
       }
     } on Exception catch (e) {
-      _resultState = StoryListErrorState(e.toString());
+      _resultState = StoryListErrorState(e.toString().replaceAll('Exception:', '').trim());
       notifyListeners();
     }
   }

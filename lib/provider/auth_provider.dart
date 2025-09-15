@@ -3,6 +3,7 @@ import 'package:story_app/data/api/api_services.dart';
 import 'package:story_app/data/model/response_login.dart';
 import 'package:story_app/db/auth_repository.dart';
 import 'package:story_app/static/login_result_state.dart';
+import 'package:story_app/static/register_result_state.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository authRepository;
@@ -17,21 +18,26 @@ class AuthProvider extends ChangeNotifier {
   LoginResult? _loginResult;
 
   String? get registerMessage => _registerMessage;
+
   String? get loginMessage => _loginMessage;
+
   LoginResult? get loginResult => _loginResult;
 
   LoginResultState _resultState = LoginNoneState();
+  RegisterResultState _registerResultState = RegisterNoneState();
 
   LoginResultState get resultState => _resultState;
 
-  AuthProvider(this.authRepository,this._apiServices);
+  RegisterResultState get resultRegisterState => _registerResultState;
 
-  Future<void> finishSplash()async{
+  AuthProvider(this.authRepository, this._apiServices);
+
+  Future<void> finishSplash() async {
     isSplashDone = true;
     notifyListeners();
   }
 
-  Future<void> checkLogin() async{
+  Future<void> checkLogin() async {
     isLoggedIn = await authRepository.isLoggedIn();
     notifyListeners();
   }
@@ -48,22 +54,30 @@ class AuthProvider extends ChangeNotifier {
     return isLoggedIn;
   }
 
-  Future<bool> register(String name, String email, String password) async{
-    isLoadingRegister = true;
-    _registerMessage = null;
-    notifyListeners();
+  Future<void> register(String name, String email, String password) async {
+    try {
+      _registerResultState = RegisterLoadingState();
+      notifyListeners();
 
-    var result = await _apiServices.register(name, email, password);
+      var result = await _apiServices.register(name, email, password);
 
-    isLoadingRegister = false;
-    _registerMessage = result.message;
-    notifyListeners();
-
-    return !result.error;
+      if (result.error) {
+        _registerResultState = RegisterErrorState(result.message);
+        notifyListeners();
+      } else {
+        _registerResultState = RegisterLoadedState(result);
+        notifyListeners();
+      }
+    } on Exception catch (e) {
+      _registerResultState = RegisterErrorState(
+        e.toString().replaceAll('Exception:', '').trim(),
+      );
+      notifyListeners();
+    }
   }
 
   Future<void> login(String email, String password) async {
-    try{
+    try {
       _resultState = LoginLoadingState();
       notifyListeners();
       final result = await _apiServices.login(email, password);
@@ -75,16 +89,17 @@ class AuthProvider extends ChangeNotifier {
         authRepository.saveLogin(result.loginResult);
         notifyListeners();
       }
-    }on Exception catch(e){
-      _resultState = LoginErrorState(e.toString());
+    } on Exception catch (e) {
+      _resultState = LoginErrorState(
+        e.toString().replaceAll('Exception:', '').trim(),
+      );
       notifyListeners();
     }
   }
 
-  Future<LoginResult> getLoginResult() async{
+  Future<LoginResult> getLoginResult() async {
     _loginResult = await authRepository.getUser();
     notifyListeners();
     return _loginResult!;
   }
-
 }

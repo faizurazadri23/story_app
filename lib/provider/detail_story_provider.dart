@@ -27,7 +27,7 @@ class DetailStoryProvider extends ChangeNotifier{
         notifyListeners();
       }
     }on Exception catch(e) {
-      _resultState = StoryDetailErrorState(e.toString());
+      _resultState = StoryDetailErrorState(e.toString().replaceAll('Exception:', '').trim());
       notifyListeners();
     }
   }

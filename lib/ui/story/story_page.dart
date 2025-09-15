@@ -3,11 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:story_app/provider/auth_provider.dart';
 import 'package:story_app/provider/story_list_provider.dart';
+import 'package:story_app/provider/theme_provider.dart';
+import 'package:story_app/ui/component/response_error.dart';
+import 'package:story_app/ui/component/shimmer_loading.dart';
 
+import '../../provider/SharedPreferencesProvider.dart';
 import '../../static/story_list_result_state.dart';
 
 class StoryPage extends StatefulWidget {
-
   final Function() onLogout;
 
   const StoryPage({super.key, required this.onLogout});
@@ -23,6 +26,11 @@ class _StateStory extends State<StoryPage> {
   @override
   void initState() {
     super.initState();
+
+    _loadData();
+  }
+
+  Future<void> _loadData()async{
     Future.microtask(() {
       if (mounted) {
         context.read<AuthProvider>().getLoginResult().then((value) {
@@ -59,6 +67,34 @@ class _StateStory extends State<StoryPage> {
       appBar: AppBar(
         title: Text('Story'),
         actions: [
+          //switch theme mode
+          Consumer<ThemeProvider>(
+            builder: (context, value, child) {
+              return IconButton(
+                icon: Icon(
+                  value.selectedThemeMode == ThemeMode.dark
+                      ? Icons.light_mode
+                      : Icons.dark_mode,
+                  color: value.selectedThemeMode == ThemeMode.dark
+                      ? Colors.white
+                      : Colors.black,
+                ),
+
+                onPressed: () {
+                  final newTheme = value.selectedThemeMode == ThemeMode.dark
+                      ? ThemeMode.light
+                      : ThemeMode.dark;
+
+                  value.setSelectedThemeMode(newTheme);
+
+                  context.read<SharedPreferencesProvider>().saveThemeMode(
+                    newTheme,
+                  );
+                },
+              );
+            },
+          ),
+          SizedBox(width: 10),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) {
@@ -79,7 +115,7 @@ class _StateStory extends State<StoryPage> {
                           child: Text('Cancel'),
                         ),
                         TextButton(
-                          onPressed: () async{
+                          onPressed: () async {
                             Navigator.pop(context);
                             widget.onLogout();
                           },
@@ -116,14 +152,28 @@ class _StateStory extends State<StoryPage> {
           ),
         ],
       ),
-      backgroundColor: Colors.white,
       body: RefreshIndicator(
         child: RefreshIndicator(
           child: Consumer<StoryListProvider>(
             builder: (context, value, child) {
               return switch (value.resultState) {
-                StoryListLoadingState() => const Center(
-                  child: CircularProgressIndicator(),
+                StoryListLoadingState() => ShimmerLoading(
+                  isLoading: true,
+                  child: ListView.builder(
+                    itemCount: 10,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.grey[300],
+                          ),
+                        ),
+                      );
+                    }
+                  )
                 ),
                 StoryListLoadedState(stories: var storyList) =>
                   ListView.builder(
@@ -141,12 +191,14 @@ class _StateStory extends State<StoryPage> {
                                 final item = storyList[index];
                                 return InkWell(
                                   onTap: () {
-                                    context.push('/story/detail', extra: item.id);
+                                    context.push(
+                                      '/story/detail',
+                                      extra: item.id,
+                                    );
                                   },
                                   splashFactory: NoSplash.splashFactory,
                                   splashColor: Colors.transparent,
                                   child: Card(
-                                    color: Colors.white,
                                     margin: EdgeInsets.symmetric(vertical: 10),
                                     child: Padding(
                                       padding: EdgeInsets.all(10),
@@ -165,13 +217,12 @@ class _StateStory extends State<StoryPage> {
                                                   color: Colors.white,
                                                 ),
                                               ),
-                                              SizedBox(width: 5),
+                                              SizedBox(width: 10),
                                               Text(
                                                 item.name,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.titleLarge,
                                               ),
                                             ],
                                           ),
@@ -189,7 +240,9 @@ class _StateStory extends State<StoryPage> {
                                           SizedBox(height: 2),
                                           Text(
                                             item.description,
-                                            style: TextStyle(fontSize: 12),
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.labelMedium,
                                             maxLines: 3,
                                           ),
                                         ],
@@ -205,7 +258,7 @@ class _StateStory extends State<StoryPage> {
                     },
                   ),
                 StoryListErrorState(error: var message) => Center(
-                  child: Text(message),
+                  child: ResponseError(message: message),
                 ),
                 _ => const SizedBox(),
               };
@@ -222,6 +275,7 @@ class _StateStory extends State<StoryPage> {
           },
         ),
         onRefresh: () {
+          _loadData();
           return Future.delayed(Duration(seconds: 5));
         },
       ),
