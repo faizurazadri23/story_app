@@ -6,8 +6,7 @@ import 'package:story_app/provider/story_list_provider.dart';
 import 'package:story_app/provider/theme_provider.dart';
 import 'package:story_app/ui/component/response_error.dart';
 import 'package:story_app/ui/component/shimmer_loading.dart';
-
-import '../../provider/SharedPreferencesProvider.dart';
+import '../../provider/shared_preferences_provider.dart';
 import '../../static/story_list_result_state.dart';
 
 class StoryPage extends StatefulWidget {
@@ -27,10 +26,6 @@ class _StateStory extends State<StoryPage> {
   void initState() {
     super.initState();
 
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
     Future.microtask(() {
       if (mounted) {
         context.read<AuthProvider>().getLoginResult().then((value) {
@@ -275,7 +270,15 @@ class _StateStory extends State<StoryPage> {
           },
         ),
         onRefresh: () {
-          _loadData();
+          context.read<AuthProvider>().getLoginResult().then((value) {
+            if(context.mounted){
+              context.read<StoryListProvider>().fetchStories(
+                _page,
+                10,
+                value.token,
+              );
+            }
+          });
           return Future.delayed(Duration(seconds: 5));
         },
       ),
