@@ -5,6 +5,7 @@ import 'package:story_app/provider/auth_provider.dart';
 import 'package:story_app/provider/story_list_provider.dart';
 import 'package:story_app/provider/theme_provider.dart';
 import 'package:story_app/ui/component/response_error.dart';
+import 'package:story_app/ui/component/response_no_item.dart';
 import 'package:story_app/ui/component/shimmer_loading.dart';
 import '../../provider/shared_preferences_provider.dart';
 import '../../static/story_list_result_state.dart';
@@ -49,6 +50,18 @@ class _StateStory extends State<StoryPage> {
         });
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final shouldRefresh = ModalRoute.of(context)?.settings.arguments as bool?;
+    if (shouldRefresh == true) {
+      context.read<AuthProvider>().getLoginResult().then((value) {
+        if (!mounted) return;
+        context.read<StoryListProvider>().fetchStories(_page, 10, value.token);
+      });
+    }
   }
 
   @override
@@ -170,88 +183,80 @@ class _StateStory extends State<StoryPage> {
                     },
                   ),
                 ),
-                StoryListLoadedState(stories: var storyList) =>
-                  ListView.builder(
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ListView.builder(
-                              itemCount: storyList.length,
-                              controller: _scrollController,
-                              shrinkWrap: true,
-                              itemBuilder: (context, index) {
-                                final item = storyList[index];
-                                return InkWell(
-                                  onTap: () {
-                                    context.push(
-                                      '/story/detail',
-                                      extra: item.id,
-                                    );
-                                  },
-                                  splashFactory: NoSplash.splashFactory,
-                                  splashColor: Colors.transparent,
-                                  child: Card(
-                                    margin: EdgeInsets.symmetric(vertical: 10),
-                                    child: Padding(
-                                      padding: EdgeInsets.all(10),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                StoryListLoadedState(stories: var storyList) => Padding(
+                  padding: EdgeInsets.all(10),
+                  child: storyList.isEmpty
+                      ? Center(child: ResponseNoItem(message: "Empty Data"))
+                      : ListView.builder(
+                          itemCount: storyList.length,
+                          controller: _scrollController,
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            final item = storyList[index];
+                            return InkWell(
+                              onTap: () {
+                                context.push('/story/detail', extra: item.id);
+                              },
+                              splashFactory: NoSplash.splashFactory,
+                              splashColor: Colors.transparent,
+                              child: Card(
+                                margin: EdgeInsets.symmetric(vertical: 10),
+                                child: Padding(
+                                  padding: EdgeInsets.all(10),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
                                         children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            children: [
-                                              CircleAvatar(
-                                                backgroundColor: Colors.grey,
-                                                child: Icon(
-                                                  Icons.person_2_rounded,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              SizedBox(width: 10),
-                                              Text(
-                                                item.name,
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.titleLarge,
-                                              ),
-                                            ],
+                                          CircleAvatar(
+                                            backgroundColor: Colors.grey,
+                                            child: Icon(
+                                              Icons.person_2_rounded,
+                                              color: Colors.white,
+                                            ),
                                           ),
-                                          SizedBox(height: 10),
-                                          Image.network(
-                                            item.photoUrl,
-                                            width: double.infinity,
-                                            height: 150,
-                                            fit: BoxFit.fitWidth,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                                  return Icon(Icons.error);
-                                                },
-                                          ),
-                                          SizedBox(height: 2),
+                                          SizedBox(width: 10),
                                           Text(
-                                            item.description,
+                                            item.name,
                                             style: Theme.of(
                                               context,
-                                            ).textTheme.labelMedium,
-                                            maxLines: 3,
+                                            ).textTheme.titleLarge,
                                           ),
                                         ],
                                       ),
-                                    ),
+                                      SizedBox(height: 10),
+                                      Image.network(
+                                        item.photoUrl,
+                                        width: double.infinity,
+                                        height: 150,
+                                        fit: BoxFit.fitWidth,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Image.asset(
+                                            'assets/images/no_image_available.jpg',
+                                            width: double.infinity,
+                                            height: 150,
+                                          );
+                                        },
+                                      ),
+                                      SizedBox(height: 2),
+                                      Text(
+                                        item.description,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.labelMedium,
+                                        maxLines: 3,
+                                      ),
+                                    ],
                                   ),
-                                );
-                              },
-                            ),
-                          ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
+                ),
                 StoryListErrorState(error: var message) => Center(
                   child: ResponseError(message: message),
                 ),
@@ -271,7 +276,7 @@ class _StateStory extends State<StoryPage> {
         ),
         onRefresh: () {
           context.read<AuthProvider>().getLoginResult().then((value) {
-            if(context.mounted){
+            if (context.mounted) {
               context.read<StoryListProvider>().fetchStories(
                 _page,
                 10,

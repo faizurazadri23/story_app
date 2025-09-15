@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:story_app/data/api/api_services.dart';
 import 'package:story_app/static/story_list_result_state.dart';
 
+import '../data/model/story.dart';
+
 class StoryListProvider extends ChangeNotifier {
   final ApiServices _apiServices;
 
@@ -10,6 +12,9 @@ class StoryListProvider extends ChangeNotifier {
   StoryListResultState _resultState = StoryListNoneState();
 
   StoryListResultState get resultState => _resultState;
+  List<Story> _storyList = [];
+
+  List<Story> get storyList => _storyList;
 
   Future<void> fetchStories(int page, int size, String token) async {
     try {

@@ -228,7 +228,7 @@ class _StateFormStory extends State<FormStoryPage> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(state.responseNewStory.message)),
                       );
-                      context.go("/story");
+                      context.go("/story", extra: true);
                     }
                   } else if (state is StoryPostErrorState) {
                     if (context.mounted) {

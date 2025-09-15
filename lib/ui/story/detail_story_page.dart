@@ -77,7 +77,11 @@ class _StateDetailStory extends State<DetailStoryPage> {
               children: [
                 Positioned.fill(
                   child: MapWidget(
-                    styleUri: context.read<ThemeProvider>().selectedThemeMode==ThemeMode.dark ? MapboxStyles.DARK :MapboxStyles.MAPBOX_STREETS,
+                    styleUri:
+                        context.read<ThemeProvider>().selectedThemeMode ==
+                            ThemeMode.dark
+                        ? MapboxStyles.DARK
+                        : MapboxStyles.MAPBOX_STREETS,
                     onMapCreated: (mapboxMap) {
                       _onMapCreated(mapboxMap);
                       if (story.lon != null && story.lat != null) {
@@ -122,7 +126,18 @@ class _StateDetailStory extends State<DetailStoryPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Image.network(story.photoUrl, width: 120),
+                          Image.network(
+                            story.photoUrl,
+                            width: 120,
+                            height: 120,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/no_image_available.jpg',
+                                width: 120,
+                                height: 120,
+                              );
+                            },
+                          ),
                           SizedBox(width: 10),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
