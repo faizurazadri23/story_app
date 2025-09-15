@@ -81,7 +81,7 @@ class _StateMyApp extends State<MyApp> {
                 );
               }
               final cameras = snapshot.data!;
-              return ChangeNotifierProvider(create: (_) => CameraProvider(cameras),child: CameraPage(cameras: cameras),);
+              return ChangeNotifierProvider(create: (_) => CameraProvider(cameras),child: CameraPage(),);
             },);
           },
         ),
