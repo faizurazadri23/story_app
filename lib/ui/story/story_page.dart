@@ -141,10 +141,7 @@ class _StateStory extends State<StoryPage> {
                                 final item = storyList[index];
                                 return InkWell(
                                   onTap: () {
-                                    context.push(
-                                      '/detail',
-                                      extra: {"id": item.id},
-                                    );
+                                    context.push('/story/detail', extra: item.id);
                                   },
                                   splashFactory: NoSplash.splashFactory,
                                   splashColor: Colors.transparent,
