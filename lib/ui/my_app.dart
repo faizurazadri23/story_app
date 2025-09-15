@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:story_app/provider/auth_provider.dart';
 import 'package:story_app/ui/camera_page.dart';
 import 'package:story_app/ui/splash_page.dart';
+import 'package:story_app/ui/story/detail_story_page.dart';
 import 'package:story_app/ui/story/form_story_page.dart';
 import 'package:story_app/ui/story/story_page.dart';
 import 'package:story_app/ui/user/login_page.dart';
@@ -51,6 +52,12 @@ class _StateMyApp extends State<MyApp> {
         GoRoute(
           path: '/story/form',
           builder: (context, state) => FormStoryPage(),
+        ),
+        GoRoute(
+          path: '/story/detail',
+          builder: (context, state){
+            return DetailStoryPage(id: state.extra as String);
+          },
         ),
         GoRoute(path: '/profile', builder: (context, state) => ProfilePage()),
         GoRoute(path: '/camera',builder: (context, state) {
