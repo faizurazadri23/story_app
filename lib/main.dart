@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:story_app/data/api/api_services.dart';
@@ -9,8 +10,12 @@ import 'package:story_app/provider/story_list_provider.dart';
 import 'package:story_app/ui/my_app.dart';
 
 import 'db/auth_repository.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async{
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MultiProvider(providers: [
     Provider(create: (context) => ApiServices()),
     ChangeNotifierProvider(create: (_) => PasswordVisibilityProvider()),
