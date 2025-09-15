@@ -16,8 +16,19 @@ class StoryListProvider extends ChangeNotifier {
 
   List<Story> get storyList => _storyList;
 
-  Future<void> fetchStories(int page, int size, String token) async {
+  int _currentPage = 1;
+  int get currentPage =>  _currentPage;
+
+  bool _isLastPage = false;
+  bool get isLastPage => _isLastPage;
+
+  Future<void> fetchStories(int page, int size, String token, {bool refresh = false}) async {
     try {
+      if(refresh || page ==1){
+        _storyList = [];
+        _isLastPage = false;
+        _currentPage = 1;
+      }
       _resultState = StoryListLoadingState();
       notifyListeners();
       final response = await _apiServices.loadAll(page, size, token);
@@ -25,9 +36,19 @@ class StoryListProvider extends ChangeNotifier {
         _resultState = StoryListErrorState(response.message);
         notifyListeners();
       } else {
+        if(response.listStory.isEmpty){
+         _isLastPage = true;
+        }else{
+          if(page==1 || refresh){
+            _storyList = response.listStory;
+          }else{
+            _storyList.addAll(response.listStory);
+          }
+          _currentPage = page;
+        }
         _resultState = StoryListLoadedState(response.listStory);
-        notifyListeners();
       }
+      notifyListeners();
     } on Exception catch (e) {
       _resultState = StoryListErrorState(e.toString().replaceAll('Exception:', '').trim());
       notifyListeners();
