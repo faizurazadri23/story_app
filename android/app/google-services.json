@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "268844425131",
+    "project_id": "story-app-9fdf1",
+    "storage_bucket": "story-app-9fdf1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:268844425131:android:289b821a0d24f621a9fcee",
+        "android_client_info": {
+          "package_name": "com.faizurazadri.storyapp.story_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBikblBwLpFDa_kTch2QXmlf2SKC2tkX4c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
