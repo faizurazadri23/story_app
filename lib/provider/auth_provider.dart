@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:story_app/data/api/api_services.dart';
-import 'package:story_app/data/model/response_login.dart';
 import 'package:story_app/db/auth_repository.dart';
 import 'package:story_app/static/login_result_state.dart';
 import 'package:story_app/static/register_result_state.dart';
+
+import '../data/model/login_result.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository authRepository;

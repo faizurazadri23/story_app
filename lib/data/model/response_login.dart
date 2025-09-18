@@ -1,3 +1,11 @@
+
+import 'package:json_annotation/json_annotation.dart';
+
+import 'login_result.dart';
+
+part 'response_login.g.dart';
+
+@JsonSerializable()
 class ResponseLogin {
   final bool error;
   final String message;
@@ -15,25 +23,5 @@ class ResponseLogin {
       message: json['message'],
       loginResult: LoginResult.fromJson(json['loginResult']),
     );
-  }
-}
-
-class LoginResult {
-  final String userId;
-  final String name;
-  final String token;
-
-  LoginResult({required this.userId, required this.name, required this.token});
-
-  factory LoginResult.fromJson(Map<String, dynamic> json) {
-    return LoginResult(
-      userId: json['userId'],
-      name: json['name'],
-      token: json['token'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'userId': userId, 'name': name, 'token': token};
   }
 }

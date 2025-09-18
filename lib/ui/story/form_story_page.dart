@@ -30,9 +30,7 @@ class _StateFormStory extends State<FormStoryPage> {
     Future.microtask(() {
       if (mounted) {
         context.read<FormStoryProvider>().getCurrentLocation();
-        _currentPosition = context.read<FormStoryProvider>().currentPosition;
-        _coordinatedController.text =
-            '${_currentPosition?.latitude}, ${_currentPosition?.longitude}';
+
       }
     });
   }
@@ -88,17 +86,16 @@ class _StateFormStory extends State<FormStoryPage> {
                       keyboardType: TextInputType.none,
                       readOnly: true,
                       textInputAction: TextInputAction.done,
+                      onTap: () {
+                        context.push('/choose-location');
+                      },
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: 'Coordinated',
+                        labelText: 'Pick your location',
                         hintText: 'Sync your location',
                         suffixIcon: GestureDetector(
                           onTap: () {
-                            _currentPosition = context
-                                .read<FormStoryProvider>()
-                                .currentPosition;
-                            _coordinatedController.text =
-                                '${_currentPosition?.latitude}, ${_currentPosition?.longitude}';
+
                           },
                           child: Icon(Icons.location_searching_rounded),
                         ),
@@ -191,8 +188,8 @@ class _StateFormStory extends State<FormStoryPage> {
 
                   final desc = _descriptionController.text.toString();
                   final filePath = provider.imagePath;
-                  final lat = provider.currentPosition.latitude.toString();
-                  final lon = provider.currentPosition.longitude.toString();
+                  final lat = provider.currentPosition?.latitude.toString();
+                  final lon = provider.currentPosition?.longitude.toString();
 
                   if (desc.isEmpty || filePath == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -213,8 +210,8 @@ class _StateFormStory extends State<FormStoryPage> {
                     filePath,
                     desc,
                     data!.token,
-                    lat,
-                    lon,
+                    lat!,
+                    lon!,
                   );
 
                   if (context.mounted) {

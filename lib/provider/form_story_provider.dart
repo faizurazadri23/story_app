@@ -1,19 +1,27 @@
-import 'package:flutter/cupertino.dart';
+import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../data/api/api_services.dart';
+import '../data/model/my_latlng.dart';
 import '../static/story_post_result_state.dart';
+import '../utils/helper.dart';
 
 class FormStoryProvider extends ChangeNotifier {
   String? imagePath;
   XFile? imageFile;
-  late Position _currentPosition;
+  Placemark? placemark;
+
+  late MyLtLng? _currentPosition;
   final ApiServices _apiServices;
 
   FormStoryProvider(this._apiServices);
 
-  Position get currentPosition => _currentPosition;
+  MyLtLng? get currentPosition => _currentPosition;
+
+  MyLtLng? _selectedLocation;
+  MyLtLng? get selectedLocation => _selectedLocation;
 
   StoryPostResultState _resultState = StoryPostNoneState();
 
@@ -26,6 +34,18 @@ class FormStoryProvider extends ChangeNotifier {
 
   void setImageFile(XFile? value) {
     imageFile = value;
+    notifyListeners();
+  }
+
+  void setSelectedLocation(MyLtLng? value) {
+    _selectedLocation = value;
+    setAddress(value!);
+    notifyListeners();
+  }
+
+  void setAddress(MyLtLng location) async {
+    var result = await Helper.getLocationName(location.latitude, location.longitude);
+    placemark = result[0];
     notifyListeners();
   }
 
@@ -53,15 +73,18 @@ class FormStoryProvider extends ChangeNotifier {
           'Location permissions are permanently denied, we cannot request permissions.');
     }
 
-    _currentPosition = await Geolocator.getCurrentPosition();
+    var myLocation = await Geolocator.getCurrentPosition();
+    _currentPosition = MyLtLng(latitude: myLocation.latitude, longitude: myLocation.longitude);
     notifyListeners();
   }
 
-  Future<void> newStory(String filePath,
+  Future<void> newStory(
+      String filePath,
       String description,
       String token,
       String latitude,
-      String longitude,) async {
+      String longitude,
+      ) async {
     try {
       _resultState = StoryPostLoadingState();
       notifyListeners();

@@ -8,6 +8,7 @@ import 'package:story_app/provider/camera_provider.dart';
 import 'package:story_app/provider/theme_provider.dart';
 import 'package:story_app/ui/camera_page.dart';
 import 'package:story_app/ui/splash_page.dart';
+import 'package:story_app/ui/story/choose_location_page.dart';
 import 'package:story_app/ui/story/detail_story_page.dart';
 import 'package:story_app/ui/story/form_story_page.dart';
 import 'package:story_app/ui/story/story_page.dart';
@@ -72,18 +73,26 @@ class _StateMyApp extends State<MyApp> {
         GoRoute(
           path: '/camera',
           builder: (context, state) {
-            return FutureBuilder<List<CameraDescription>>(future: availableCameras(), builder: (context, snapshot) {
-              if(!snapshot.hasData){
-                return const Scaffold(
-                  body: Center(
-                    child: CircularProgressIndicator(),
-                  ),
+            return FutureBuilder<List<CameraDescription>>(
+              future: availableCameras(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                final cameras = snapshot.data!;
+                return ChangeNotifierProvider(
+                  create: (_) => CameraProvider(cameras),
+                  child: CameraPage(),
                 );
-              }
-              final cameras = snapshot.data!;
-              return ChangeNotifierProvider(create: (_) => CameraProvider(cameras),child: CameraPage(),);
-            },);
+              },
+            );
           },
+        ),
+        GoRoute(
+          path: '/choose-location',
+          builder: (context, state) => ChooseLocationPage(),
         ),
       ],
       initialLocation: '/splash',

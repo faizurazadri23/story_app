@@ -12,45 +12,37 @@ class StoryListProvider extends ChangeNotifier {
   StoryListResultState _resultState = StoryListNoneState();
 
   StoryListResultState get resultState => _resultState;
-  List<Story> _storyList = [];
+  final List<Story> _storyList = [];
 
   List<Story> get storyList => _storyList;
 
-  int _currentPage = 1;
-  int get currentPage =>  _currentPage;
+  int? pageItems = 1;
+  int sizeItems = 10;
 
-  bool _isLastPage = false;
-  bool get isLastPage => _isLastPage;
-
-  Future<void> fetchStories(int page, int size, String token, {bool refresh = false}) async {
+  Future<void> fetchStories(String token) async {
     try {
-      if(refresh || page ==1){
-        _storyList = [];
-        _isLastPage = false;
-        _currentPage = 1;
+      if (pageItems == 1) {
+        _resultState = StoryListLoadingState();
+        notifyListeners();
       }
-      _resultState = StoryListLoadingState();
-      notifyListeners();
-      final response = await _apiServices.loadAll(page, size, token);
+      final response = await _apiServices.loadAll(pageItems!, sizeItems, token);
       if (response.error) {
         _resultState = StoryListErrorState(response.message);
-        notifyListeners();
       } else {
-        if(response.listStory.isEmpty){
-         _isLastPage = true;
-        }else{
-          if(page==1 || refresh){
-            _storyList = response.listStory;
-          }else{
-            _storyList.addAll(response.listStory);
-          }
-          _currentPage = page;
+        _storyList.addAll(response.listStory);
+        _resultState = StoryListLoadedState(_storyList);
+        if (response.listStory.isEmpty) {
+          pageItems = null;
+        } else {
+          pageItems = pageItems! + 1;
         }
-        _resultState = StoryListLoadedState(response.listStory);
       }
+
       notifyListeners();
     } on Exception catch (e) {
-      _resultState = StoryListErrorState(e.toString().replaceAll('Exception:', '').trim());
+      _resultState = StoryListErrorState(
+        e.toString().replaceAll('Exception:', '').trim(),
+      );
       notifyListeners();
     }
   }

@@ -44,6 +44,8 @@ class _StateDetailStory extends State<DetailStoryPage> {
   }
 
   void _onMapCreated(MapboxMap mapboxMap) async {
+    mapboxMap.location.updateSettings(LocationComponentSettings(
+        enabled: true, puckBearingEnabled: true, pulsingEnabled: true));
     this.mapboxMap = mapboxMap;
   }
 
@@ -139,25 +141,27 @@ class _StateDetailStory extends State<DetailStoryPage> {
                             },
                           ),
                           SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                story.name,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  story.name,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                story.description,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black,
+                                SizedBox(height: 4),
+                                Text(
+                                  story.description,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),

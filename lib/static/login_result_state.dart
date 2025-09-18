@@ -1,4 +1,4 @@
-import 'package:story_app/data/model/response_login.dart';
+import '../data/model/login_result.dart';
 
 sealed class LoginResultState {}
 

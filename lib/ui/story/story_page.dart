@@ -32,13 +32,12 @@ class _StateStory extends State<StoryPage> {
         final login = await context.read<AuthProvider>().getLoginResult();
         if (!mounted) return;
         _token = login.token;
-        context.read<StoryListProvider>().fetchStories(1, 10, _token);
+
+        context.read<StoryListProvider>().fetchStories(_token);
         _scrollController.addListener(() {
-          final provider = context.read<StoryListProvider>();
-          if (_scrollController.position.pixels ==
-                  _scrollController.position.maxScrollExtent &&
-              !provider.isLastPage) {
-            provider.fetchStories(provider.currentPage + 1, 10, _token);
+          if (_scrollController.position.pixels >=
+              _scrollController.position.maxScrollExtent) {
+            context.read<StoryListProvider>().fetchStories(_token);
           }
         });
       }
@@ -50,12 +49,7 @@ class _StateStory extends State<StoryPage> {
     super.didChangeDependencies();
     final shouldRefresh = GoRouterState.of(context).extra as bool?;
     if (shouldRefresh == true) {
-      context.read<StoryListProvider>().fetchStories(
-        1,
-        10,
-        _token,
-        refresh: true,
-      );
+      context.read<StoryListProvider>().fetchStories(_token);
     }
   }
 
@@ -183,10 +177,21 @@ class _StateStory extends State<StoryPage> {
                 child: storyList.isEmpty
                     ? Center(child: ResponseNoItem(message: "Empty Data"))
                     : ListView.builder(
-                        itemCount: storyList.length,
+                        itemCount:
+                            storyList.length +
+                            (value.pageItems != null ? 1 : 0),
                         controller: _scrollController,
                         shrinkWrap: true,
                         itemBuilder: (context, index) {
+                          if (index == storyList.length &&
+                              value.pageItems != null) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(8),
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
                           final item = storyList[index];
                           return InkWell(
                             onTap: () {
@@ -196,55 +201,67 @@ class _StateStory extends State<StoryPage> {
                             splashColor: Colors.transparent,
                             child: Card(
                               margin: EdgeInsets.symmetric(vertical: 10),
-                              child: Padding(
-                                padding: EdgeInsets.all(10),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Image.network(
+                                    item.photoUrl,
+                                    width: double.infinity,
+                                    height: 150,
+                                    fit: BoxFit.fitWidth,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Image.asset(
+                                        'assets/images/no_image_available.jpg',
+                                        width: double.infinity,
+                                        height: 150,
+                                      );
+                                    },
+                                  ),
+                                  SizedBox(height: 10),
+                                  Padding(
+                                    padding: EdgeInsets.all(10),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        CircleAvatar(
-                                          backgroundColor: Colors.grey,
-                                          child: Icon(
-                                            Icons.person_2_rounded,
-                                            color: Colors.white,
-                                          ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            CircleAvatar(
+                                              backgroundColor: Colors.grey,
+                                              child: Icon(
+                                                Icons.person_2_rounded,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                item.name,
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.titleLarge,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                softWrap: false,
+                                                textAlign: TextAlign.start,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        SizedBox(width: 10),
+                                        SizedBox(height: 4),
                                         Text(
-                                          item.name,
+                                          item.description,
                                           style: Theme.of(
                                             context,
-                                          ).textTheme.titleLarge,
+                                          ).textTheme.labelMedium,
+                                          maxLines: 3,
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: 10),
-                                    Image.network(
-                                      item.photoUrl,
-                                      width: double.infinity,
-                                      height: 150,
-                                      fit: BoxFit.fitWidth,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Image.asset(
-                                          'assets/images/no_image_available.jpg',
-                                          width: double.infinity,
-                                          height: 150,
-                                        );
-                                      },
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      item.description,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.labelMedium,
-                                      maxLines: 3,
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           );
@@ -259,12 +276,7 @@ class _StateStory extends State<StoryPage> {
           },
         ),
         onRefresh: () async {
-          await context.read<StoryListProvider>().fetchStories(
-            1,
-            10,
-            _token,
-            refresh: true,
-          );
+          await context.read<StoryListProvider>().fetchStories(_token);
           return Future.delayed(Duration(seconds: 5));
         },
       ),

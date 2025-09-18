@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:story_app/data/model/response_login.dart';
+import '../data/model/login_result.dart';
 
 class AuthRepository {
   final String userKey = "user";
