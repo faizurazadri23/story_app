@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:story_app/provider/auth_provider.dart';
 import 'package:story_app/static/login_result_state.dart';
-
+import 'package:story_app/ui/component/loading_dialog.dart';
 import '../../provider/password_visibility_provider.dart';
 
 class LoginPage extends StatefulWidget {
@@ -109,12 +109,7 @@ class _StateLogin extends State<LoginPage> {
                           if (_formKey.currentState!.validate()) {
                             final provider  = context.read<AuthProvider>();
 
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (_) =>
-                              const Center(child: CircularProgressIndicator()),
-                            );
+                            showLoadingDialog(context);
 
                             await provider
                                 .login(

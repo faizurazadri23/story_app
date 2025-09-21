@@ -13,7 +13,7 @@ class FormStoryProvider extends ChangeNotifier {
   XFile? imageFile;
   Placemark? placemark;
 
-  late MyLtLng? _currentPosition;
+  MyLtLng? _currentPosition;
   final ApiServices _apiServices;
 
   FormStoryProvider(this._apiServices);
@@ -26,6 +26,9 @@ class FormStoryProvider extends ChangeNotifier {
   StoryPostResultState _resultState = StoryPostNoneState();
 
   StoryPostResultState get resultState => _resultState;
+
+  final TextEditingController _addressController = TextEditingController();
+  TextEditingController get addressController => _addressController;
 
   void setImagePath(String? value) {
     imagePath = value;
@@ -46,6 +49,7 @@ class FormStoryProvider extends ChangeNotifier {
   void setAddress(MyLtLng location) async {
     var result = await Helper.getLocationName(location.latitude, location.longitude);
     placemark = result[0];
+    _addressController.text = "${placemark?.street} ${placemark?.subLocality} ${placemark?.locality} ${placemark?.subAdministrativeArea} ${placemark?.administrativeArea} ${placemark?.postalCode}";
     notifyListeners();
   }
 

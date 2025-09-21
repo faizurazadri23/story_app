@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +9,7 @@ import 'package:story_app/provider/form_story_provider.dart';
 import 'package:story_app/static/story_post_result_state.dart';
 
 import '../../provider/auth_provider.dart';
+import '../component/loading_dialog.dart';
 
 class FormStoryPage extends StatefulWidget {
   const FormStoryPage({super.key});
@@ -20,12 +20,9 @@ class FormStoryPage extends StatefulWidget {
 
 class _StateFormStory extends State<FormStoryPage> {
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _coordinatedController = TextEditingController();
-  late Position? _currentPosition;
 
   @override
   void initState() {
-    _currentPosition = null;
     super.initState();
     Future.microtask(() {
       if (mounted) {
@@ -37,6 +34,7 @@ class _StateFormStory extends State<FormStoryPage> {
 
   @override
   void dispose() {
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -75,7 +73,7 @@ class _StateFormStory extends State<FormStoryPage> {
                     ),
                     SizedBox(height: 25),
                     TextFormField(
-                      controller: _coordinatedController,
+                      controller: context.read<FormStoryProvider>().addressController,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your location';
@@ -188,8 +186,8 @@ class _StateFormStory extends State<FormStoryPage> {
 
                   final desc = _descriptionController.text.toString();
                   final filePath = provider.imagePath;
-                  final lat = provider.currentPosition?.latitude.toString();
-                  final lon = provider.currentPosition?.longitude.toString();
+                  final lat = provider.selectedLocation?.latitude.toString();
+                  final lon = provider.selectedLocation?.longitude.toString();
 
                   if (desc.isEmpty || filePath == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -200,12 +198,7 @@ class _StateFormStory extends State<FormStoryPage> {
                     return;
                   }
                   var data = context.read<AuthProvider>().loginResult;
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (_) =>
-                        const Center(child: CircularProgressIndicator()),
-                  );
+                  showLoadingDialog(context);
                   await provider.newStory(
                     filePath,
                     desc,

@@ -5,6 +5,7 @@ import 'package:story_app/provider/auth_provider.dart';
 import 'package:story_app/static/register_result_state.dart';
 
 import '../../provider/password_visibility_provider.dart';
+import '../component/loading_dialog.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -111,26 +112,22 @@ class _StateRegister extends State<RegisterPage> {
             ),
 
             SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size.fromHeight(50),
-                        backgroundColor: Colors.blue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: context.watch<AuthProvider>().isLoadingRegister
-                          ? null
-                          :  () async {
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size.fromHeight(50),
+                  backgroundColor: Colors.blue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: context.watch<AuthProvider>().isLoadingRegister
+                    ? null
+                    : () async {
                         if (_formKey.currentState!.validate()) {
-                          final provider  = context.read<AuthProvider>();
+                          final provider = context.read<AuthProvider>();
 
-                          showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (_) =>
-                              const Center(child: CircularProgressIndicator()));
+                          showLoadingDialog(context);
 
                           await provider.register(
                             _fullNameController.text,
@@ -138,33 +135,38 @@ class _StateRegister extends State<RegisterPage> {
                             _passwordController.text,
                           );
 
-                          if(context.mounted){
+                          if (context.mounted) {
                             context.pop();
                           }
 
                           final state = provider.resultRegisterState;
 
                           if (state is RegisterLoadedState) {
-                            if(context.mounted){
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.responseRegister.message)));
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(state.responseRegister.message),
+                                ),
+                              );
                               context.go("/login");
                             }
-                          }else if(state is RegisterErrorState){
-                            if(context.mounted){
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error)));
+                          } else if (state is RegisterErrorState) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(state.error)),
+                              );
                             }
                           }
-
                         }
                       },
-                      child: context.watch<AuthProvider>().isLoadingRegister
-                          ? const Center(child: CircularProgressIndicator())
-                          :  Text(
+                child: context.watch<AuthProvider>().isLoadingRegister
+                    ? const Center(child: CircularProgressIndicator())
+                    : Text(
                         'Register',
                         style: TextStyle(fontSize: 14, color: Colors.white),
                       ),
-                    ),
-                  ),
+              ),
+            ),
           ],
         ),
       ),

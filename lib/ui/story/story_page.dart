@@ -49,7 +49,15 @@ class _StateStory extends State<StoryPage> {
     super.didChangeDependencies();
     final shouldRefresh = GoRouterState.of(context).extra as bool?;
     if (shouldRefresh == true) {
-      context.read<StoryListProvider>().fetchStories(_token);
+      final authProvider = context.read<AuthProvider>();
+      final storyProvider = context.read<StoryListProvider>();
+      authProvider.getLoginResult().then((value) {
+        if (!mounted) return;
+        _token = value.token;
+        storyProvider.pageItems = 1;
+        storyProvider.storyList.clear();
+        storyProvider.fetchStories(_token);
+      });
     }
   }
 
@@ -65,7 +73,6 @@ class _StateStory extends State<StoryPage> {
       appBar: AppBar(
         title: Text('Story'),
         actions: [
-          //switch theme mode
           Consumer<ThemeProvider>(
             builder: (context, value, child) {
               return IconButton(
@@ -276,6 +283,8 @@ class _StateStory extends State<StoryPage> {
           },
         ),
         onRefresh: () async {
+          context.read<StoryListProvider>().pageItems = 1;
+          context.read<StoryListProvider>().storyList.clear();
           await context.read<StoryListProvider>().fetchStories(_token);
           return Future.delayed(Duration(seconds: 5));
         },
