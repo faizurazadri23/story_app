@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:story_app/data/model/my_latlng.dart';
 import 'package:story_app/provider/auth_provider.dart';
 import 'package:story_app/provider/detail_story_provider.dart';
 import 'package:story_app/provider/theme_provider.dart';
@@ -23,6 +24,7 @@ class DetailStoryPage extends StatefulWidget {
 class _StateDetailStory extends State<DetailStoryPage> {
   late MapboxMap? mapboxMap;
   late PointAnnotationManager _pointAnnotationManager;
+  late Cancelable _tapCancelable;
 
   @override
   void initState() {
@@ -30,7 +32,9 @@ class _StateDetailStory extends State<DetailStoryPage> {
     super.initState();
     Future.microtask(() {
       if (mounted) {
-        context.read<DetailStoryProvider>().fetchDetailStory(
+        var provider = context.read<DetailStoryProvider>();
+        provider.popupScreenPosition = null;
+        provider.fetchDetailStory(
           widget.id,
           context.read<AuthProvider>().loginResult!.token,
         );
@@ -40,12 +44,18 @@ class _StateDetailStory extends State<DetailStoryPage> {
 
   @override
   void dispose() {
+    _tapCancelable.cancel();
     super.dispose();
   }
 
   void _onMapCreated(MapboxMap mapboxMap) async {
-    mapboxMap.location.updateSettings(LocationComponentSettings(
-        enabled: true, puckBearingEnabled: true, pulsingEnabled: true));
+    mapboxMap.location.updateSettings(
+      LocationComponentSettings(
+        enabled: true,
+        puckBearingEnabled: true,
+        pulsingEnabled: true,
+      ),
+    );
     this.mapboxMap = mapboxMap;
   }
 
@@ -62,6 +72,27 @@ class _StateDetailStory extends State<DetailStoryPage> {
         image: list,
         iconSize: 5,
       ),
+    );
+
+    _pointAnnotationManager.tapEvents(
+      onTap: (annotation) async {
+        final coordinates = annotation.geometry;
+
+        final detailStoryProvider = context.read<DetailStoryProvider>();
+
+        detailStoryProvider.setAddress(
+          MyLtLng(
+            latitude: coordinates.coordinates.lat.toDouble(),
+            longitude: coordinates.coordinates.lng.toDouble(),
+          ),
+        );
+
+        final screenPos = await mapboxMap?.pixelForCoordinate(coordinates);
+
+        if (!mounted) return;
+
+        detailStoryProvider.popupScreenPosition = screenPos;
+      },
     );
   }
 
@@ -116,6 +147,34 @@ class _StateDetailStory extends State<DetailStoryPage> {
                     },
                   ),
                 ),
+                if (value.popupScreenPosition != null)
+                  Positioned(
+                    left: value.popupScreenPosition!.x.toDouble() - 100 / 2,
+                    top: value.popupScreenPosition!.y.toDouble() - 100,
+                    child: GestureDetector(
+                      onTap: () {
+                        context
+                                .read<DetailStoryProvider>()
+                                .popupScreenPosition =
+                            null;
+                      },
+                      child: Card(
+                        color: Colors.white,
+                        elevation: 5,
+                        child: Container(
+                          constraints: BoxConstraints(maxWidth: 200),
+                          padding: EdgeInsets.all(8.0),
+                          child: Text(
+                            value.address,
+                            style: const TextStyle(color: Colors.black),
+                            maxLines: 2,
+                            softWrap: true,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 Positioned(
                   bottom: 0,
                   left: 0,
