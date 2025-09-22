@@ -17,11 +17,5 @@ class ResponseLogin {
     required this.loginResult,
   });
 
-  factory ResponseLogin.fromJson(Map<String, dynamic> json) {
-    return ResponseLogin(
-      error: json['error'],
-      message: json['message'],
-      loginResult: LoginResult.fromJson(json['loginResult']),
-    );
-  }
+  factory ResponseLogin.fromJson(Map<String, dynamic> json) => _$ResponseLoginFromJson(json);
 }
